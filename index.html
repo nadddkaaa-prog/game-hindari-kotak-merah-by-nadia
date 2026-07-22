@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Hindari Kotak - by nadia sofme</title>
+    <style>
+        /* === DESAIN CSS === */
+        * {
+            box-sizing: border-box;
+            user-select: none; /* Mencegah teks terseleksi saat di-tap */
+        }
+
+        body {
+            /* Background Gradient: Ungu Tua, Ungu Muda, Pink Tua, Pink Muda, Biru Tua, Biru Muda */
+            background: linear-gradient(135deg, 
+                #2e1065, /* Ungu Tua */
+                #7e22ce, /* Ungu Muda */
+                #be185d, /* Pink Tua */
+                #f472b6, /* Pink Muda */
+                #1d4ed8, /* Biru Tua */
+                #38bdf8  /* Biru Muda */
+            );
+            background-size: 400% 400%;
+            animation: gradientBG 12s ease infinite; /* Efek gerak warna gradient */
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+        }
+
+        /* Animasi pergerakan warna latar belakang */
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Tulisan By Nadia */
+        .author {
+            margin: 5px 0 0 0;
+            font-size: 1.95rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #ffe4e6;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Kotak Game Warna Pink Pastel + Grid Sesuai Ukuran Kotak Musuh (30px x 30px) */
+        #game-board {
+            width: 320px;
+            height: 400px;
+            background-color: #fbcfe8; /* Pink Pastel Base */
+            /* Grid pembatas dibuat pas 30px x 30px */
+            background-image: 
+                linear-gradient(to right, rgba(244, 114, 182, 0.4) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(244, 114, 182, 0.4) 1px, transparent 1px);
+            background-size: 30px 30px; /* Ukuran disamakan dengan ukuran kotak musuh */
+            border: 4px solid #f472b6;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            touch-action: none;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Overlay Layar Mulai / Jeda */
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            backdrop-filter: blur(3px);
+        }
+
+        /* Player (Kotak Biru Ukuran 30px x 30px) */
+        #player {
+            width: 30px;
+            height: 30px;
+            background-color: #0284c7;
+            border-radius: 6px;
+            position: absolute;
+            bottom: 10px;
+            left: 145px;
+            box-shadow: 0 0 8px #0284c7;
+            transition: left 0.05s linear;
+            z-index: 2;
+        }
+
+        /* Musuh (Kotak Merah Ukuran 30px x 30px) */
+        .enemy {
+            width: 30px;
+            height: 30px;
+            background-color: #e11d48;
+            border-radius: 6px;
+            position: absolute;
+            top: 0;
+            box-shadow: 0 0 8px #e11d48;
+            z-index: 2;
+        }
+
+        /* Papan Skor */
+        #score-board {
+            margin-top: 12px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Kontrol Navigasi Utama (Start/Pause) */
+        .main-controls {
+            margin-top: 10px;
+        }
+
+        /* Tombol Kontrol Layar / HP */
+        .touch-controls {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .btn {
+            background-color: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(5px);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            padding: 12px 28px;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.1s, background-color 0.2s;
+        }
+
+        .btn-action {
+            background-color: #0284c7;
+            border-color: #38bdf8;
+            font-size: 1.2rem;
+            padding: 12px 30px;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .info {
+            margin-top: 10px;
+            color: #f1f5f9;
+            font-size: 0.85rem;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Hindari Kotak Merah!</h1>
+        <p class="author">by nadia sofme</p>
+    </div>
+    
+    <!-- Area Permainan -->
+    <div id="game-board">
+        <!-- Overlay untuk Layar Status (Mulai/Jeda) -->
+        <div id="overlay">
+            <button class="btn btn-action" id="btn-start">MULAI GAME</button>
+        </div>
+        <div id="player"></div>
+    </div>
+
+    <!-- Papan Skor -->
+    <div id="score-board">Skor: <span id="score">0</span></div>
+
+    <!-- Tombol Kontrol Permainan (Jeda/Teruskan) -->
+    <div class="main-controls">
+        <button class="btn" id="btn-pause" style="display: none;">JEDA</button>
+    </div>
+
+    <!-- Tombol Khusus Layar Sentuh / HP -->
+    <div class="touch-controls">
+        <button class="btn" id="btn-left">◄ KIRI</button>
+        <button class="btn" id="btn-right">KANAN ►</button>
+    </div>
+
+    <div class="info">Gunakan tombol di atas atau <b>Panah Keyboard (← / →)</b></div>
+
+    <!-- === LOGIKA JAVASCRIPT === -->
+    <script>
+        const player = document.getElementById('player');
+        const gameBoard = document.getElementById('game-board');
+        const scoreDisplay = document.getElementById('score');
+        const overlay = document.getElementById('overlay');
+        const btnStart = document.getElementById('btn-start');
+        const btnPause = document.getElementById('btn-pause');
+
+        let playerX = 145; // Posisi awal player (tengah)
+        let score = 0;
+        let isGameOver = false;
+        let isGameStarted = false;
+        let isPaused = false;
+        let spawnInterval = null;
+
+        // --- FUNGSI PERGERAKAN ---
+        function moveLeft() {
+            if (!isGameStarted || isPaused || isGameOver) return;
+            if (playerX > 0) {
+                playerX -= 30; // Disesuaikan pergerakan per kelipatan 30px (sesuai grid)
+                if (playerX < 0) playerX = 0;
+                player.style.left = playerX + 'px';
+            }
+        }
+
+        function moveRight() {
+            if (!isGameStarted || isPaused || isGameOver) return;
+            if (playerX < 290) { // 320px lebar board - 30px lebar player
+                playerX += 30; // Disesuaikan pergerakan per kelipatan 30px (sesuai grid)
+                if (playerX > 290) playerX = 290;
+                player.style.left = playerX + 'px';
+            }
+        }
+
+        // --- MANAJEMEN STATUS GAME ---
+        function startGame() {
+            isGameStarted = true;
+            isPaused = false;
+            overlay.style.display = 'none';
+            btnPause.style.display = 'inline-block';
+            spawnInterval = setInterval(createEnemy, 700);
+        }
+
+        function togglePause() {
+            if (!isGameStarted || isGameOver) return;
+
+            if (isPaused) {
+                // Teruskan Game
+                isPaused = false;
+                overlay.style.display = 'none';
+                btnPause.innerText = 'JEDA';
+                spawnInterval = setInterval(createEnemy, 700);
+            } else {
+                // Jeda Game
+                isPaused = true;
+                btnStart.innerText = 'TERUSKAN';
+                overlay.style.display = 'flex';
+                btnPause.innerText = 'TERUSKAN';
+                clearInterval(spawnInterval);
+            }
+        }
+
+        // --- EVENT LISTENERS CONTROL ---
+        btnStart.addEventListener('click', () => {
+            if (!isGameStarted) {
+                startGame();
+            } else if (isPaused) {
+                togglePause();
+            }
+        });
+
+        btnPause.addEventListener('click', togglePause);
+
+        // Kontrol Keyboard (Laptop/PC)
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') moveLeft();
+            if (e.key === 'ArrowRight') moveRight();
+            if (e.key === 'p' || e.key === 'P') togglePause();
+        });
+
+        // Kontrol Tombol Layar (HP / Mouse)
+        document.getElementById('btn-left').addEventListener('click', moveLeft);
+        document.getElementById('btn-right').addEventListener('click', moveRight);
+
+        // --- SISTEM MUSUH JATUH ---
+        function createEnemy() {
+            if (isGameOver || isPaused) return;
+
+            const enemy = document.createElement('div');
+            enemy.classList.add('enemy');
+            
+            // Posisi X musuh dibuat sejajar dengan petak grid 30px
+            let columns = Math.floor(290 / 30);
+            let enemyX = Math.floor(Math.random() * (columns + 1)) * 30;
+            let enemyY = 0;
+            enemy.style.left = enemyX + 'px';
+            enemy.style.top = enemyY + 'px';
+
+            gameBoard.appendChild(enemy);
+
+            let enemyInterval = setInterval(() => {
+                if (isGameOver) {
+                    clearInterval(enemyInterval);
+                    enemy.remove();
+                    return;
+                }
+
+                // Jika sedang jeda, hentikan sementara pergerakan musuh
+                if (isPaused) return;
+
+                enemyY += 5; // Kecepatan jatuh
+                enemy.style.top = enemyY + 'px';
+
+                // Deteksi Benturan (Collision Detection)
+                if (
+                    enemyY > 360 && 
+                    enemyX < playerX + 30 &&
+                    enemyX + 30 > playerX
+                ) {
+                    isGameOver = true;
+                    clearInterval(spawnInterval);
+                    alert('Game Over! Skor Akhir Kamu: ' + score);
+                    location.reload(); // Reset game
+                }
+
+                // Jika musuh lolos ke bawah (Poin Bertambah 1)
+                if (enemyY > 400) {
+                    clearInterval(enemyInterval);
+                    enemy.remove();
+                    score += 1; // Ditambah 1 poin setiap berhasil menghindari musuh
+                    scoreDisplay.innerText = score;
+                }
+            }, 20);
+        }
+    </script>
+</body>
+</html>
